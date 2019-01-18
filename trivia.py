@@ -13,13 +13,13 @@ def sucks_to_be_you_message():
 
 
 def youre_smart_message():
-    opts = ["Correct!", "Nice work!", "Right on."]
+    opts = ["Correct!", "Awesome!", "Right on."]
     return random.choice(opts)
 
 
 def get_questions():
     qs = [["Is Orion a star?", "no"],
-          ["Are clouds evil", "yes", "definitely"],
+          ["Are clouds evil?", "yes", "definitely"],
           ["Who made this bot?", "locke"]]
     return qs
 
@@ -35,7 +35,7 @@ class Trivia:
         self.channel = None
         self.msgtask = None
 
-        self.max_time = 5  # seconds
+        self.max_time = 7  # seconds
 
     def __unload(self):
         self.kill_run_task()
@@ -75,7 +75,7 @@ class Trivia:
         """Main task of running trivia.  This can be cancelled."""
         while self.question_num < len(self.questions):
             await self.channel.trigger_typing()
-            await asyncio.sleep(1)
+            await asyncio.sleep(1.5)
 
             q = self.questions[self.question_num]
             await self.channel.send("Question {}: {}".format(self.question_num+1, q[0]))
@@ -83,9 +83,8 @@ class Trivia:
 
             self.msgtask = self.bot.loop.create_task(self.listen_for_message_task())
             while not self.msgtask.done():
-                #  print(time.time()-start)
                 if time.time() > start + self.max_time:
-                    print("overtime!")
+                    print("Time's up!")
                     self.msgtask.cancel()
                     sucks = sucks_to_be_you_message()
                     await self.channel.send(sucks + " The answer was {}".format(q[1]))
@@ -100,17 +99,13 @@ class Trivia:
         Returns when they have the right answer"""
         def check(m):
             return m.channel == self.channel
-        try:
-            while True:
-                msg = await self.bot.wait_for("message", check=check)
+        while True:
+            msg = await self.bot.wait_for("message", check=check)
 
-                if self.correct(msg.content):
-                    await self.channel.send(youre_smart_message())
-                    self.score += 1
-                    return True
-        except asyncio.CancelledError:
-            print("ok bye")
-            return False
+            if self.correct(msg.content):
+                await self.channel.send(youre_smart_message())
+                self.score += 1
+                return True
 
     def correct(self, ans):
         q = self.questions[self.question_num]
