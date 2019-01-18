@@ -8,6 +8,7 @@ BOT_PREFIX = "."
 startup_extensions = ['trivia']
 bot = commands.Bot(command_prefix=BOT_PREFIX)
 
+about_str = f"I'm Spacetrivia, Spacecord's third trivia bot. I was programmed by Locke on discord.py 1.0.0a\nMy prefix here is {BOT_PREFIX}"
 
 @bot.event
 async def on_ready():
@@ -20,6 +21,19 @@ async def on_ready():
 @bot.command(hidden=True)
 async def foo(ctx):
     await ctx.send('You found my first command!  Congrats. :confetti_ball:')
+
+
+@bot.command()
+async def about(ctx):
+    await ctx.send(about_str)
+
+
+@bot.event
+async def on_message(msg: discord.Message):
+    c = msg.content
+    if c == f"<@{bot.user.id}>" or c == f"<@{bot.user.id}>":
+        await msg.channel.send(about_str)
+    await bot.process_commands(msg)
 
 
 @commands.cooldown(rate=1, per=7)
