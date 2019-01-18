@@ -2,12 +2,13 @@ import asyncio
 import random
 import time
 
+import discord
 from discord.ext import commands
 
 
 def sucks_to_be_you_message():
     opts = ["That was a toughie.", "You'll do better next time.", "I believe in you.",
-            "Haha sucker doesn't know this one.", "Not quite.", "Close, but no cigar.",
+            "Shucks.", "Not quite.", "Close, but no cigar.",
             "You're doing great, but"]
     return random.choice(opts)
 
@@ -18,10 +19,21 @@ def youre_smart_message():
 
 
 def get_questions():
-    qs = [["Is Orion a star?", "no"],
-          ["Are clouds evil?", "yes", "definitely"],
+    qs = [["Is Orion a star?", "no", "n"],
+          ["Are clouds evil?", "yes", "y", "definitely"],
           ["Who made this bot?", "locke"]]
     return qs
+
+
+async def privileged_person(ctx):
+    staff = discord.utils.get(ctx.guild.roles, name="Staff")
+    host = discord.utils.get(ctx.guild.roles, name="Trivia Host")
+    manager = discord.utils.get(ctx.guild.roles, name="Trivia Manager")
+    for roll in (staff, host, manager):
+        if roll is None:
+            await ctx.send("I didn't find normal roll names, so you'll have problems running stuff")
+            return False
+    return ctx.author.top_role >= staff or host in ctx.author.roles or manager in ctx.author.roles
 
 
 class Trivia:
@@ -40,6 +52,7 @@ class Trivia:
     def __unload(self):
         self.kill_run_task()
 
+    @commands.check(privileged_person)
     @commands.command(aliases=['purge_channel'])
     async def clear_channel(self, ctx):
         """Clear all messages in a channel that aren't pinned
@@ -49,6 +62,7 @@ class Trivia:
         deleted = await ctx.channel.purge(limit=500, check=isnt_pinned)
         await ctx.send(f"Cleared {len(deleted)} messages", delete_after=3)
 
+    @commands.check(privileged_person)
     @commands.command()
     async def start(self, ctx):
         """Begin or resume a trivia session"""
@@ -59,12 +73,14 @@ class Trivia:
             await ctx.send("Resuming trivia!")
         self.start_run_task()
 
+    @commands.check(privileged_person)
     @commands.command()
     async def pause(self, ctx):
         """Temporarily suspend a trivia session"""
         self.kill_run_task()
         await ctx.send("Trivia paused.")
 
+    @commands.check(privileged_person)
     @commands.command()
     async def stop(self, ctx):
         """Stop all questioning and forget where we were"""
@@ -91,7 +107,12 @@ class Trivia:
                 await asyncio.sleep(.07)
 
             self.question_num += 1
-        await self.channel.send(f"Nice work!  You got {self.score} question{'s' if self.score is not 1 else ''} right!")
+        if self.score == 0:
+            await self.channel.send("You got 0 questions right.  Better luck next time!")
+        elif self.score == 1:
+            await self.channel.send("You got 1 question right!")
+        else:
+            await self.channel.send(f"Nice work!  You got {self.score} questions right!")
         self.reset()
 
     async def listen_for_message_task(self):
@@ -106,12 +127,16 @@ class Trivia:
                 await self.channel.send(youre_smart_message())
                 self.score += 1
                 return True
+            if msg.content.lower() == "idk":
+                await self.channel.send("Then guess!")
 
     def correct(self, ans):
+        """Return whether an answer is correct"""
         q = self.questions[self.question_num]
         return any(ans.lower() == response for response in q[1:])
 
     def reset(self):
+        """Reset everything to beginning state"""
         self.question_num = 0
         self.score = 0
         self.kill_run_task()
