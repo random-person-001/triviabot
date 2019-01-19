@@ -1,9 +1,9 @@
 import asyncio
-import os
 import random
 import time
 import json
 import pprint
+from shutil import copy2
 
 import discord
 from discord.ext import commands
@@ -130,7 +130,7 @@ class Trivia:
                 await ctx.send("\n".join(ans for ans in par[1:]))
                 out.append(par)
         # copy file as backup
-        os.system("cp questions.json questions.json.old")
+        copy2("questions.json", "questions.json.old")
         # write file
         with open('questions.json', 'w') as f:
             json.dump(out, fp=f)
