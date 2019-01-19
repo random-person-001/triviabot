@@ -3,7 +3,7 @@ import json
 import discord
 from discord.ext import commands
 
-BOT_PREFIX = "."
+BOT_PREFIX = "'"
 
 startup_extensions = ['trivia']
 bot = commands.Bot(command_prefix=BOT_PREFIX)
@@ -32,7 +32,7 @@ async def about(ctx):
 @bot.event
 async def on_message(msg: discord.Message):
     c = msg.content
-    if c == f"<@{bot.user.id}>" or c == f"<@{bot.user.id}>":
+    if c == f"<@{bot.user.id}>" or c == f"<@!{bot.user.id}>":
         await msg.channel.send(about_str)
     await bot.process_commands(msg)
 

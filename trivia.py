@@ -3,6 +3,7 @@ import os
 import random
 import time
 import json
+import pprint
 
 import discord
 from discord.ext import commands
@@ -37,7 +38,8 @@ async def privileged_person(ctx):
     manager = discord.utils.get(ctx.guild.roles, name="Trivia Manager")
     for roll in (staff, host, manager):
         if roll is None:
-            await ctx.send("I didn't find normal roll names, so you'll have problems running stuff")
+            await ctx.send("I didn't find the rolls (`Staff`, `Trivia Host` and `Trivia Manager`) that are allowed "
+                           "to run commands, so you'll have problems running stuff")
             return False
     return ctx.author.top_role >= staff or host in ctx.author.roles or manager in ctx.author.roles
 
@@ -136,6 +138,7 @@ class Trivia:
 
     async def run_task(self):
         """Main task of running trivia.  This can be cancelled."""
+        pprint.pprint(self.questions)
         while self.question_num < len(self.questions):
             await self.channel.trigger_typing()
             await asyncio.sleep(1.5)
@@ -189,9 +192,7 @@ class Trivia:
         self.kill_run_task()
 
     def kill_run_task(self):
-        if self.runTask is None:
-            return
-        else:
+        if self.runTask is not None:
             self.runTask.cancel()
             self.runTask = None
         if self.msgtask is not None and not self.msgtask.done():
