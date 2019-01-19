@@ -1,6 +1,8 @@
 import asyncio
+import os
 import random
 import time
+import json
 
 import discord
 from discord.ext import commands
@@ -19,10 +21,14 @@ def youre_smart_message():
 
 
 def get_questions():
-    qs = [["Is Orion a star?", "no", "n"],
-          ["Are clouds evil?", "yes", "y", "definitely"],
-          ["Who made this bot?", "locke"]]
-    return qs
+    try:
+        with open('questions.json') as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        print("Error loading questions file!")
+        return [["There was an error loading the questions file. This is a programming problem or a you problem.  In "
+                 "the latter case, you can solve it by rewriting the file with the `save_questions` command",
+                 "there actually wasn't one lol"]]
 
 
 async def privileged_person(ctx):
@@ -74,6 +80,18 @@ class Trivia:
         self.start_run_task()
 
     @commands.check(privileged_person)
+    @commands.command(aliases=['grant_point', 'grant', 'addpoint'])
+    async def add_point(self, ctx):
+        self.score += 1
+        await ctx.send("Added a point.")
+
+    @commands.check(privileged_person)
+    @commands.command(aliases=['subtract_point', 'removepoint'])
+    async def remove_point(self, ctx):
+        self.score -= 1
+        await ctx.send("Removed a point.")
+
+    @commands.check(privileged_person)
     @commands.command()
     async def pause(self, ctx):
         """Temporarily suspend a trivia session"""
@@ -86,6 +104,35 @@ class Trivia:
         """Stop all questioning and forget where we were"""
         await ctx.send("Trivia halted.  Use the `start` command to start anew.")
         self.reset()
+
+    @commands.check(privileged_person)
+    @commands.command()
+    async def save_questions(self, ctx):
+        """
+        Input questions from spacedoc format into a format I remember
+        Don't use double quotes, please
+        """
+        def check(msg):
+            return msg.author == ctx.message.author
+        await ctx.send("Type one question per message, in spacedoc format. When you're done, say `exit`")
+        out = []
+        while True:
+            msg = await self.bot.wait_for("message", check=check)
+            if msg.content == 'exit' or msg.content == 'done':
+                break
+            par = msg.content.split('`')
+            if len(par) < 2:
+                await ctx.send("Oops, that didn't look like a legit question to me")
+            else:
+                await ctx.send(f"Added question `{par[0]}` with the following answers:\n")
+                await ctx.send("\n".join(ans for ans in par[1:]))
+                out.append(par)
+        # copy file as backup
+        os.system("cp questions.json questions.json.old")
+        # write file
+        with open('questions.json', 'w') as f:
+            json.dump(out, fp=f)
+        await ctx.send("Written!")
 
     async def run_task(self):
         """Main task of running trivia.  This can be cancelled."""
@@ -133,7 +180,7 @@ class Trivia:
     def correct(self, ans):
         """Return whether an answer is correct"""
         q = self.questions[self.question_num]
-        return any(ans.lower() == response for response in q[1:])
+        return any(ans.lower() == response.lower() for response in q[1:])
 
     def reset(self):
         """Reset everything to beginning state"""

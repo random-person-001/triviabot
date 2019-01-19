@@ -10,6 +10,7 @@ bot = commands.Bot(command_prefix=BOT_PREFIX)
 
 about_str = f"I'm Spacetrivia, Spacecord's third trivia bot. I was programmed by Locke on discord.py 1.0.0a\nMy prefix here is {BOT_PREFIX}"
 
+
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user}')
