@@ -1,8 +1,8 @@
 import asyncio
-import random
-import time
 import json
 import pprint
+import random
+import time
 from shutil import copy2
 
 import discord
@@ -25,7 +25,7 @@ def get_questions():
     try:
         with open('questions.json') as f:
             return json.load(f)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, FileNotFoundError):
         print("Error loading questions file!")
         return [["There was an error loading the questions file. This is a programming problem or a you problem.  In "
                  "the latter case, you can solve it by rewriting the file with the `save_questions` command",
@@ -116,25 +116,35 @@ class Trivia:
         """
         def check(msg):
             return msg.author == ctx.message.author
-        await ctx.send("Type one question per message, in spacedoc format. When you're done, say `exit`")
+
+        await ctx.send("Type one question per message, in spacedoc format. "
+                       "When you're done, say `done` (or `nvm` to abort)")
         out = []
         while True:
             msg = await self.bot.wait_for("message", check=check)
             if msg.content == 'exit' or msg.content == 'done':
                 break
+            if msg.content.lower() == 'nvm':
+                await ctx.send("Aborting `save_questions`")
+                return
             par = msg.content.split('`')
             if len(par) < 2:
-                await ctx.send("Oops, that didn't look like a legit question to me")
+                await ctx.send("Oops, that didn't look like a legit question to me.  "
+                               "The format I expect  is Question\`answer\`alternate answer`another answer...")
             else:
-                await ctx.send(f"Added question `{par[0]}` with the following answers:\n")
+                await ctx.send(f"Added question `{par[0]}` with  the following answers:")
                 await ctx.send("\n".join(ans for ans in par[1:]))
                 out.append(par)
         # copy file as backup
-        copy2("questions.json", "questions.json.old")
+        try:
+            copy2("questions.json", "questions.json.old")
+        except FileNotFoundError:
+            print("No previous questions file so skipping attempt to back it up")
         # write file
         with open('questions.json', 'w') as f:
             json.dump(out, fp=f)
         await ctx.send("Written!")
+        self.questions = get_questions()
 
     async def run_task(self):
         """Main task of running trivia.  This can be cancelled."""
@@ -157,9 +167,9 @@ class Trivia:
                 await asyncio.sleep(.07)
 
             self.question_num += 1
-        if self.score == 0:
+        if self.score is 0:
             await self.channel.send("You got 0 questions right.  Better luck next time!")
-        elif self.score == 1:
+        elif self.score is 1:
             await self.channel.send("You got 1 question right!")
         else:
             await self.channel.send(f"Nice work!  You got {self.score} questions right!")
@@ -177,7 +187,7 @@ class Trivia:
                 await self.channel.send(youre_smart_message())
                 self.score += 1
                 return True
-            if msg.content.lower() == "idk":
+            if msg.content.lower() == "idk" or msg.content() == '¯\_(ツ)_/¯':
                 await self.channel.send("Then guess!")
 
     def correct(self, ans):
