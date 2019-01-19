@@ -53,7 +53,7 @@ class Trivia:
         self.channel = None
         self.msgtask = None
 
-        self.max_time = 7  # seconds
+        self.max_time = 20  # seconds
 
     def __unload(self):
         self.kill_run_task()
