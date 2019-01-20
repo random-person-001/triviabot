@@ -187,7 +187,7 @@ class Trivia:
                 await self.channel.send(youre_smart_message())
                 self.score += 1
                 return True
-            if msg.content.lower() == "idk" or msg.content() == '¯\_(ツ)_/¯':
+            if msg.content.lower() == "idk" or msg.content == '¯\_(ツ)_/¯':
                 await self.channel.send("Then guess!")
 
     def correct(self, ans):
