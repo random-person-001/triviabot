@@ -71,7 +71,7 @@ class Trivia:
         await ctx.send(f"Cleared {len(deleted)} messages", delete_after=3)
 
     @commands.check(privileged_person)
-    @commands.command()
+    @commands.command(aliases=['resume'])
     async def start(self, ctx):
         """Begin or resume a trivia session"""
         self.channel = ctx.channel
@@ -82,13 +82,13 @@ class Trivia:
         self.start_run_task()
 
     @commands.check(privileged_person)
-    @commands.command(aliases=['grant_point', 'grant', 'addpoint'])
+    @commands.command(aliases=['grant_point', 'grant', 'addpoint', 'add', 'yes'])
     async def add_point(self, ctx):
         self.score += 1
         await ctx.send("Added a point.")
 
     @commands.check(privileged_person)
-    @commands.command(aliases=['subtract_point', 'removepoint'])
+    @commands.command(aliases=['subtract_point', 'removepoint', 'subtract', 'remove', 'nope', 'no'])
     async def remove_point(self, ctx):
         self.score -= 1
         await ctx.send("Removed a point.")
@@ -187,7 +187,7 @@ class Trivia:
                 await self.channel.send(youre_smart_message())
                 self.score += 1
                 return True
-            if msg.content.lower() == "idk" or msg.content == '¯\_(ツ)_/¯':
+            if msg.content.lower() == "idk" or msg.content == '¯\\_(ツ)_/¯':
                 await self.channel.send("Then guess!")
 
     def correct(self, ans):
