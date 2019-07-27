@@ -17,7 +17,7 @@ def sucks_to_be_you_message():
 
 
 def youre_smart_message():
-    opts = ["Correct!", "Awesome!", "Right on."]
+    opts = ["Correct!", "Awesome!", "Right on.", "Nice!", "Good work."]
     return random.choice(opts)
 
 
@@ -120,21 +120,27 @@ class Trivia:
         await ctx.send("Type one question per message, in spacedoc format. "
                        "When you're done, say `done` (or `nvm` to abort)")
         out = []
-        while True:
+        done = False
+        while not done:
             msg = await self.bot.wait_for("message", check=check)
-            if msg.content == 'exit' or msg.content == 'done':
-                break
-            if msg.content.lower() == 'nvm':
-                await ctx.send("Aborting `save_questions`")
-                return
-            par = msg.content.split('`')
-            if len(par) < 2:
-                await ctx.send("Oops, that didn't look like a legit question to me.  "
-                               "The format I expect  is Question\`answer\`alternate answer`another answer...")
-            else:
-                await ctx.send(f"Added question `{par[0]}` with  the following answers:")
-                await ctx.send("\n".join(ans for ans in par[1:]))
-                out.append(par)
+            for content in msg.content.split('\n'):
+                if content == 'exit' or content == 'done':
+                    done = True
+                    break
+                if content.lower() == 'nvm':
+                    await ctx.send("Aborting `save_questions`")
+                    return
+                par = content.split('`')
+                if len(par) < 2:
+                    await ctx.send("Oops, that didn't look like a legit question to me.  "
+                                   "The format I expect  is Question\\`answer\\`alternate answer`another answer..."
+                                   "Make sure you didn't cut off a question halfway through because of the character "
+                                   "limit :eyes:")
+                elif len(content) > 1:  # silently skip over inputted empty newlines
+                    await ctx.send(f"Added question `{par[0]}` with  the following answers:")
+                    await ctx.send("\n".join(ans for ans in par[1:]))
+                    out.append(par)
+        await ctx.send("Processed {} questions :thumbsup:".format(len(out)))
         # copy file as backup
         try:
             copy2("questions.json", "questions.json.old")
@@ -151,7 +157,7 @@ class Trivia:
         pprint.pprint(self.questions)
         while self.question_num < len(self.questions):
             await self.channel.trigger_typing()
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(2)
 
             q = self.questions[self.question_num]
             await self.channel.send("Question {}: {}".format(self.question_num+1, q[0]))
@@ -164,6 +170,7 @@ class Trivia:
                     self.msgtask.cancel()
                     sucks = sucks_to_be_you_message()
                     await self.channel.send(sucks + " The answer was {}".format(q[1]))
+                    await asyncio.sleep(2)  # give extra pause for participant to process the correct answer.
                 await asyncio.sleep(.07)
 
             self.question_num += 1
