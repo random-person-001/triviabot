@@ -30,7 +30,7 @@ The bot only counts as correct answers that match exactly one of the given answe
 
 ## Hosting
 Triviabot requires python 3.7 as it uses discord.py 1.0.0a (rewrite).  You can probably install it with something like `pip install git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py` 
-`
+
 
 The bot should give relatively useful errors when you try to run it about what it needs, but if you want to be proactive, you'll want a file called `api_keys.json` with a discord token in it, like
 ```json
