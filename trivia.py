@@ -117,7 +117,7 @@ class Trivia(commands.Cog):
         def check(msg):
             return msg.author == ctx.message.author
 
-        await ctx.send("Type one question per message, in spacedoc format. "
+        await ctx.send("Type one or more questions per message, in spacedoc format. "
                        "When you're done, say `done` (or `nvm` to abort)")
         out = []
         done = False
