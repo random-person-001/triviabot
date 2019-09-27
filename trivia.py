@@ -44,7 +44,7 @@ async def privileged_person(ctx):
     return ctx.author.top_role >= staff or host in ctx.author.roles or manager in ctx.author.roles
 
 
-class Trivia:
+class Trivia(commands.Cog):
     """For hosting Spacecord Trivia sessions"""
     def __init__(self, bot):
         self.bot = bot
