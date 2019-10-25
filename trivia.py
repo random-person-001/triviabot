@@ -8,6 +8,8 @@ from shutil import copy2
 import discord
 from discord.ext import commands
 
+import parser
+
 
 def sucks_to_be_you_message():
     opts = ["That was a toughie.", "You'll do better next time.", "I believe in you.",
@@ -109,9 +111,9 @@ class Trivia(commands.Cog):
 
     @commands.check(privileged_person)
     @commands.command()
-    async def save_questions(self, ctx):
+    async def save_questions_old(self, ctx):
         """
-        Input questions from spacedoc format into a format I remember
+        Input questions from old spacedoc format into a format I remember
         Don't use double quotes, please
         """
         def check(msg):
@@ -219,6 +221,48 @@ class Trivia(commands.Cog):
         if self.runTask is not None:
             self.kill_run_task()
         self.runTask = self.bot.loop.create_task(self.run_task())
+
+    @commands.is_owner()
+    @commands.command()
+    async def say(self, ctx, chan: int, *, content):
+        await self.bot.get_channel(chan).send(content)
+
+    @commands.check(privileged_person)
+    @commands.command()
+    async def save_questions(self, ctx):
+        """
+        Input questions from new spacedoc format into a format I remember
+        """
+
+        def check(msg):
+            return msg.author == ctx.message.author
+
+        await ctx.send("Paste an even number of lines at a time, in spacedoc format. "
+                       "When you're done, say `done` (or `nvm` to abort)")
+        out = []
+        done = False
+        while not done:
+            msg = await self.bot.wait_for("message", check=check)
+            if msg.content == 'exit' or msg.content == 'done':
+                done = True
+                break
+            if any(msg.content.lower() == word for word in ('nvm', 'abort', 'stop')):
+                await ctx.send("Aborting `save_questions`")
+                return
+            chunky = await parser.parse_block(ctx, msg.content)
+            if chunky:  # sometimes the parse_block won't return anything if user do stuff well
+                out.extend(chunky)
+        await ctx.send("Processed {} questions :thumbsup:".format(len(out)))
+        # copy file as backup
+        try:
+            copy2("questions.json", "questions.json.old")
+        except FileNotFoundError:
+            print("No previous questions file so skipping attempt to back it up")
+        # write file
+        with open('questions.json', 'w') as f:
+            json.dump(out, fp=f)
+        await ctx.send("Written!")
+        self.questions = get_questions()
 
 
 def setup(bot):
