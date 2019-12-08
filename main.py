@@ -1,11 +1,12 @@
 import asyncio
 import json
+
 import discord
 from discord.ext import commands
 
 BOT_PREFIX = "'"
 
-startup_extensions = ['trivia']
+startup_extensions = ['trivia', 'logger']
 bot = commands.Bot(command_prefix=BOT_PREFIX)
 
 about_str = f"I'm Spacetrivia, Spacecord's third trivia bot. I was programmed by Locke on discord.py 1.0.0a\nMy prefix here is {BOT_PREFIX}"
