@@ -15,7 +15,7 @@ class Logger(commands.Cog):
         log = discord.utils.get(msg.guild.channels, name='trivia-logs')
         await log.send(msg.author.name + ':    ' + msg.content)
         if msg.author.bot and all(x in msg.content for x in ('Cleared', 'messages')):
-            await log.send('=' * 25 + '\n' * 3 + '{:-^25}'.format('Channel cleared.') + '=' * 25)
+            await log.send('=' * 25 + '\n' * 3 + '{:-^38}'.format('Channel cleared.') + '\n' * 3 + '=' * 25)
 
 
 def setup(bot):
