@@ -13,7 +13,7 @@ class Logger(commands.Cog):
         if msg.channel.name != 'astro-trivia':
             return
         log = discord.utils.get(msg.guild.channels, name='trivia-logs')
-        await log.send(msg.author.name + ':    ' + msg.content)
+        await log.send(msg.author.name + ':    ' + discord.utils.escape_mentions(msg.content))
         if msg.author.bot and all(x in msg.content for x in ('Cleared', 'messages')):
             await log.send('=' * 25 + '\n' * 3 + '{:-^38}'.format('Channel cleared.') + '\n' * 3 + '=' * 25)
 
