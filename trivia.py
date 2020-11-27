@@ -63,7 +63,7 @@ class Trivia(commands.Cog):
         self.kill_run_task()
 
     @commands.check(privileged_person)
-    @commands.command(aliases=['purge_channel'])
+    @commands.command(aliases=['purge_channel', 'clear'])
     async def clear_channel(self, ctx):
         """Clear all messages in a channel that aren't pinned
         Max 500 messages."""
@@ -126,7 +126,7 @@ class Trivia(commands.Cog):
         while not done:
             msg = await self.bot.wait_for("message", check=check)
             for content in msg.content.split('\n'):
-                if content == 'exit' or content == 'done':
+                if content.lower() == 'exit' or content.lower() == 'done':
                     done = True
                     break
                 if content.lower() == 'nvm':
@@ -172,7 +172,7 @@ class Trivia(commands.Cog):
                     self.msgtask.cancel()
                     sucks = sucks_to_be_you_message()
                     await self.channel.send(sucks + " The answer was {}".format(q[1]))
-                    await asyncio.sleep(2)  # give extra pause for participant to process the correct answer.
+                    await asyncio.sleep(3)  # give extra pause for participant to process the correct answer.
                 await asyncio.sleep(.07)
 
             self.question_num += 1
@@ -243,7 +243,7 @@ class Trivia(commands.Cog):
         done = False
         while not done:
             msg = await self.bot.wait_for("message", check=check)
-            if msg.content == 'exit' or msg.content == 'done':
+            if msg.content.lower() == 'exit' or msg.content.lower() == 'done':
                 done = True
                 break
             if any(msg.content.lower() == word for word in ('nvm', 'abort', 'stop')):
