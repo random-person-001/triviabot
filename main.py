@@ -9,7 +9,8 @@ BOT_PREFIX = "'"
 startup_extensions = ['trivia', 'logger']
 bot = commands.Bot(command_prefix=BOT_PREFIX)
 
-about_str = f"I'm Spacetrivia, Spacecord's third trivia bot. I was programmed by Locke on discord.py 1.0.0a\nMy prefix here is {BOT_PREFIX}"
+about_str = f"I'm Uncle-Daddy Jorgen, Spacecord's trivia bot. I was programmed by Locke on discord.py {discord.__version__}\nMy prefix here is {BOT_PREFIX}"
+print(about_str)
 
 
 @bot.event

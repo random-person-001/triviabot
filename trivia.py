@@ -103,7 +103,7 @@ class Trivia(commands.Cog):
         await ctx.send("Trivia paused.")
 
     @commands.check(privileged_person)
-    @commands.command()
+    @commands.command(hidden=True)
     async def stop(self, ctx):
         """Stop all questioning and forget where we were"""
         await ctx.send("Trivia halted.  Use the `start` command to start anew.")
@@ -114,7 +114,7 @@ class Trivia(commands.Cog):
     async def save_questions_old(self, ctx):
         """
         Input questions from old spacedoc format into a format I remember
-        Don't use double quotes, please
+        Don't use double quotes, please.  Multiple questions at a time is fine.
         """
         def check(msg):
             return msg.author == ctx.message.author
@@ -223,12 +223,12 @@ class Trivia(commands.Cog):
         self.runTask = self.bot.loop.create_task(self.run_task())
 
     @commands.is_owner()
-    @commands.command()
+    @commands.command(hidden=True)
     async def say(self, ctx, chan: int, *, content):
         await self.bot.get_channel(chan).send(content)
 
     @commands.check(privileged_person)
-    @commands.command()
+    @commands.command(hidden=True)
     async def save_questions(self, ctx):
         """
         Input questions from new spacedoc format into a format I remember
