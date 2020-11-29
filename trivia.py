@@ -125,7 +125,7 @@ class Trivia(commands.Cog):
         done = False
         while not done:
             msg = await self.bot.wait_for("message", check=check)
-            for content in msg.content.split('\n'):
+            for content in msg.content.replace('´', '\'').split('\n'):  # input on macs has ´ instead of ' sometimes
                 if content.lower() == 'exit' or content.lower() == 'done':
                     done = True
                     break
@@ -202,6 +202,7 @@ class Trivia(commands.Cog):
     def correct(self, ans):
         """Return whether an answer is correct"""
         q = self.questions[self.question_num]
+        ans = ans.replace('´', '\'')  # response might be on iOS which has weird apostrophies
         return any(ans.lower() == response.lower() for response in q[1:])
 
     def reset(self):

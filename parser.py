@@ -27,7 +27,7 @@ def display(out):
 
 async def parse_block(ctx, block):
     """Given a partial block of text that was pasted in from the trivia doc, parse it and read back to the user"""
-    lines = block.split('\n')
+    lines = block.replace('´', '\'').split('\n')  # some questions are inputted from macs and have weird apostrophies
     print(lines)
     # check validity of input
     try:
