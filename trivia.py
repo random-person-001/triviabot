@@ -162,7 +162,7 @@ class Trivia(commands.Cog):
             await asyncio.sleep(2)
 
             q = self.questions[self.question_num]
-            await self.channel.send("Question {}: {}".format(self.question_num+1, q[0]))
+            qmsg = await self.channel.send("Question {}: {}".format(self.question_num + 1, q[0]))
             start = time.time()
 
             self.msgtask = self.bot.loop.create_task(self.listen_for_message_task())
@@ -193,8 +193,11 @@ class Trivia(commands.Cog):
             msg = await self.bot.wait_for("message", check=check)
 
             if self.correct(msg.content):
+                # speed = msg.timestamp - datetime.utcnow()
                 await self.channel.send(youre_smart_message())
                 self.score += 1
+                # log how long it took them to respond
+                # log_speed(msg, speed)
                 return True
             if msg.content.lower() == "idk" or msg.content == '¯\\_(ツ)_/¯':
                 await self.channel.send("Then guess!")
@@ -229,25 +232,23 @@ class Trivia(commands.Cog):
         await self.bot.get_channel(chan).send(content)
 
     @commands.check(privileged_person)
-    @commands.command(hidden=True)
+    @commands.command()
     async def save_questions(self, ctx):
         """
-        Input questions from new spacedoc format into a format I remember
+        Input questions from human readable spacedoc format for me to remember
         """
 
         def check(msg):
             return msg.author == ctx.message.author
 
-        await ctx.send("Paste an even number of lines at a time, in spacedoc format. "
+        await ctx.send("Paste many lines at a time from the human readable trivia doc. \n"
                        "When you're done, say `done` (or `nvm` to abort)")
         out = []
-        done = False
-        while not done:
+        while True:
             msg = await self.bot.wait_for("message", check=check)
             if msg.content.lower() == 'exit' or msg.content.lower() == 'done':
-                done = True
                 break
-            if any(msg.content.lower() == word for word in ('nvm', 'abort', 'stop')):
+            if any(msg.content.lower() == word for word in ('nvm', 'abort', 'stop', 'fuck off')):
                 await ctx.send("Aborting `save_questions`")
                 return
             chunky = await parser.parse_block(ctx, msg.content)

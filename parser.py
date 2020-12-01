@@ -11,7 +11,7 @@ Answer: No` n
 def parse_next(lines):
     """Parse the next two lines of `lines` for the next question and answer"""
     data = [lines[0][len('Question: '):].strip()]
-    data.extend(answer.strip() for answer in lines[1][len('Answer: '):].split('`'))
+    data.extend(answer.strip() for answer in lines[1][len('Answer: '):].split(','))
     lines.pop(0)
     lines.pop(0)  # we work from the front; this is easier than a pointer
     return data
@@ -27,19 +27,23 @@ def display(out):
 
 async def parse_block(ctx, block):
     """Given a partial block of text that was pasted in from the trivia doc, parse it and read back to the user"""
-    lines = block.replace('´', '\'').split('\n')  # some questions are inputted from macs and have weird apostrophies
+    # some questions are inputted from macs and have weird apostrophes.  Kill them, and empty newlines
+    # also escape underscores so when shown as a question in discord, they do not format, and normalize iOS apostrophes
+    rawlines = block.replace('´', '\'').replace('\n\n', '\n').replace('_', '\\_').replace('´', '\'').split('\n')
+    lines = []
+    for line in rawlines:
+        if not line.lower().startswith('source:'):
+            lines.append(line)
     print(lines)
     # check validity of input
     try:
         if len(lines) % 2:
-            raise UserWarning('Odd number of lines!')
+            raise UserWarning('Ope, I didn\'t get that. Try not to separate any questions from their answers')
         for i in range(len(lines)):
             if i % 2 and not lines[i].startswith('Answer: '):
-                await ctx.send(lines[i])
-                raise UserWarning('Answer did not start with "Answer: "')
+                raise UserWarning('Answer did not start with "Answer: "\n```' + lines[i] + '```')
             if (1 + i) % 2 and not lines[i].startswith('Question: '):
-                await ctx.send(lines[i])
-                raise UserWarning('Question did not start with "Question: "')
+                raise UserWarning('Question did not start with "Question: "\n```' + lines[i] + '```')
     except UserWarning as e:
         await ctx.send(e)
         return
